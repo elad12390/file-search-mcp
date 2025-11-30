@@ -1,0 +1,48 @@
+{
+  "name": "file-search-mcp",
+  "version": "1.0.0",
+  "description": "A blazingly fast MCP server for searching files in large codebases and monorepos",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "file-search-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "metrics": "tsx scripts/view-metrics.ts",
+    "metrics:raw": "tsx scripts/view-metrics.ts --raw",
+    "metrics:clear": "tsx scripts/view-metrics.ts --clear",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "file-search",
+    "grep",
+    "ripgrep",
+    "monorepo",
+    "code-search"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "fast-glob": "^3.3.2",
+    "fzf": "^0.5.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
