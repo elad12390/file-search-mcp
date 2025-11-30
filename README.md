@@ -32,26 +32,67 @@ apt install ripgrep     # Ubuntu
 choco install ripgrep   # Windows
 ```
 
-### Install the MCP Server
+### Quick Start (npx)
 
-```bash
-# Clone and build
-git clone <repo>
-cd file-search-mcp
-npm install
-npm run build
-```
-
-## Usage with Claude Desktop
-
-Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+No installation required! Just add to your MCP client config:
 
 ```json
 {
   "mcpServers": {
     "file-search": {
-      "command": "node",
-      "args": ["/absolute/path/to/file-search-mcp/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "file-search-mcp"]
+    }
+  }
+}
+```
+
+### Global Install
+
+```bash
+npm install -g file-search-mcp
+```
+
+Then use in your config:
+
+```json
+{
+  "mcpServers": {
+    "file-search": {
+      "command": "file-search-mcp"
+    }
+  }
+}
+```
+
+## Usage with Claude Desktop
+
+Add to your Claude Desktop config:
+
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "file-search": {
+      "command": "npx",
+      "args": ["-y", "file-search-mcp"]
+    }
+  }
+}
+```
+
+## Usage with OpenCode
+
+Add to your OpenCode config (`~/.config/opencode/config.json`):
+
+```json
+{
+  "mcp": {
+    "file-search": {
+      "type": "local",
+      "command": ["npx", "-y", "file-search-mcp"]
     }
   }
 }

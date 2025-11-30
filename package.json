@@ -1,12 +1,17 @@
 {
   "name": "file-search-mcp",
-  "version": "1.0.0",
-  "description": "A blazingly fast MCP server for searching files in large codebases and monorepos",
+  "version": "0.0.1",
+  "description": "A blazingly fast MCP server for searching files in large codebases and monorepos. Features glob search, ripgrep-powered content search, fuzzy find, and directory tree visualization.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
     "file-search-mcp": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
@@ -17,6 +22,7 @@
     "metrics": "tsx scripts/view-metrics.ts",
     "metrics:raw": "tsx scripts/view-metrics.ts --raw",
     "metrics:clear": "tsx scripts/view-metrics.ts --clear",
+    "prepublishOnly": "npm run build && npm test",
     "prepare": "npm run build"
   },
   "keywords": [
@@ -26,10 +32,23 @@
     "grep",
     "ripgrep",
     "monorepo",
-    "code-search"
+    "code-search",
+    "fuzzy-find",
+    "fzf",
+    "claude",
+    "ai",
+    "llm"
   ],
-  "author": "",
+  "author": "Elad Ben Haim",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elad12390/file-search-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/elad12390/file-search-mcp/issues"
+  },
+  "homepage": "https://github.com/elad12390/file-search-mcp#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "fast-glob": "^3.3.2",
