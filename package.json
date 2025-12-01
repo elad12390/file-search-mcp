@@ -1,6 +1,6 @@
 {
   "name": "file-search-mcp",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A blazingly fast MCP server for searching files in large codebases and monorepos. Features glob search, ripgrep-powered content search, fuzzy find, and directory tree visualization.",
   "type": "module",
   "main": "dist/index.js",
