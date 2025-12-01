@@ -40,11 +40,13 @@ const server = new McpServer(
 
 server.tool(
   'search_files',
-  `Find files by name or pattern - blazingly fast even in massive monorepos.
+  `USE INSTEAD OF GLOB/FIND. Find files by pattern with built-in previews - eliminates follow-up read calls.
 
-Uses optimized filesystem traversal that respects .gitignore by default, skips binary files, and handles symlinks safely. Unlike \`find\`, it won't hang on huge directories or follow infinite loops.
+Respects .gitignore, skips binary files, filters by size/date, handles symlinks safely. Perfect for exploring unfamiliar codebases or analyzing build infrastructure.
 
-Examples: "*.ts", "test_*", "src/**/*.config.js"`,
+Set detail_level="full" to get content previews without separate read calls.
+
+Examples: "*.yml" in .github/workflows/, "**/Jenkinsfile*", "*.config.js"`,
   {
     reasoning: SearchFilesSchema.shape.reasoning,
     pattern: SearchFilesSchema.shape.pattern,
@@ -77,16 +79,15 @@ Examples: "*.ts", "test_*", "src/**/*.config.js"`,
 
 server.tool(
   'search_content',
-  `Find text or patterns inside files - powered by ripgrep (rg).
+  `USE INSTEAD OF GREP. Search file contents with surrounding context - see matches in context without follow-up reads.
 
-100x faster than grep on large codebases. Smart case-sensitivity (case-insensitive unless your query has capitals). Auto-skips binary files and respects .gitignore. Returns matches with surrounding context so you understand the code.
+Respects .gitignore, skips binary files, smart case-sensitivity. Use for finding implementations, tracing function calls, or analyzing patterns across a codebase.
 
-Examples: "TODO", "function.*export", "apiKey"
+Use context_lines parameter to control how much surrounding code you see (default: 2 lines).
 
-Requires ripgrep to be installed:
-  macOS: brew install ripgrep
-  Ubuntu: apt install ripgrep
-  Windows: choco install ripgrep`,
+Examples: "slackSend|notification" in *.groovy, "webhook" across all files, "TODO" in src/
+
+Requires ripgrep: brew install ripgrep (macOS) | apt install ripgrep (Ubuntu)`,
   {
     reasoning: SearchContentSchema.shape.reasoning,
     query: SearchContentSchema.shape.query,
@@ -119,11 +120,13 @@ Requires ripgrep to be installed:
 
 server.tool(
   'fuzzy_find',
-  `Fuzzy search for files when you don't remember the exact name.
+  `USE WHEN YOU DON'T KNOW THE EXACT FILENAME. Fuzzy search that finds "UserController.ts" when you type "usrctl".
 
-Type "usrctl" to find "UserController.ts". Ranked by match quality so the best results come first. Great for navigating unfamiliar codebases or finding files you vaguely remember.
+Ranked by match quality - best matches first. Perfect when you vaguely remember a filename or are exploring an unfamiliar codebase.
 
-Examples: "userctrl", "apirts", "cfgjson"`,
+Much faster than glob with wildcards when you're guessing at names.
+
+Examples: "userctrl" → UserController.ts, "jenkfile" → Jenkinsfile, "slacklib" → slackLib.groovy`,
   {
     reasoning: FuzzyFindSchema.shape.reasoning,
     query: FuzzyFindSchema.shape.query,
@@ -152,11 +155,13 @@ Examples: "userctrl", "apirts", "cfgjson"`,
 
 server.tool(
   'tree',
-  `Visualize directory structure at a glance.
+  `USE INSTEAD OF LS/FIND FOR STRUCTURE. Visualize directory layout without multiple commands.
 
-Instantly understand how a project is organized without running multiple ls commands. Configurable depth prevents overwhelming output in deep repos.
+Get instant overview of project organization. Configurable depth prevents overwhelming output in deep repos.
 
-Perfect for: "Show me the project structure", "What's in the src folder?"`,
+Use this first when exploring a new codebase - shows you where to look before you start searching.
+
+Perfect for: "Show me the project structure", "What's in repos/jenkins/", "How is src/ organized?"`,
   {
     reasoning: TreeSchema.shape.reasoning,
     path: TreeSchema.shape.path,
