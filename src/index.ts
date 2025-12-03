@@ -2,13 +2,13 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { z } from 'zod';
 
 import {
   SearchFilesSchema,
   SearchContentSchema,
   FuzzyFindSchema,
   TreeSchema,
+  SearchResult,
 } from './types.js';
 
 import { searchFiles } from './tools/search-files.js';
@@ -17,6 +17,8 @@ import { fuzzyFind } from './tools/fuzzy-find.js';
 import { tree } from './tools/tree.js';
 import { formatSearchResultsText } from './utils/truncate.js';
 import { withMetrics } from './utils/metrics.js';
+import { searchCache, QueryCache } from './utils/cache.js';
+import { suggestContextLines } from './utils/suggestions.js';
 
 // ============================================================================
 // Server Setup
@@ -60,13 +62,40 @@ Examples: "*.yml" in .github/workflows/, "**/Jenkinsfile*", "*.config.js"`,
   },
   async (args) => {
     const input = SearchFilesSchema.parse(args);
+    
+    // Check cache first
+    const cacheKey = QueryCache.generateKey('search_files', input);
+    const cached = searchCache.get(cacheKey) as SearchResult | undefined;
+    
+    if (cached) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `[cached] ` + formatSearchResultsText(cached, { 
+              query: input.pattern, 
+              tool: 'search_files' 
+            }),
+          },
+        ],
+      };
+    }
+    
     const result = await withMetrics('search_files', input, () => searchFiles(input));
+    
+    // Cache successful results
+    if (result.files.length > 0) {
+      searchCache.set(cacheKey, result);
+    }
     
     return {
       content: [
         {
           type: 'text',
-          text: formatSearchResultsText(result),
+          text: formatSearchResultsText(result, { 
+            query: input.pattern, 
+            tool: 'search_files' 
+          }),
         },
       ],
     };
@@ -101,13 +130,48 @@ Requires ripgrep: brew install ripgrep (macOS) | apt install ripgrep (Ubuntu)`,
   },
   async (args) => {
     const input = SearchContentSchema.parse(args);
+    
+    // Apply smart context_lines if not explicitly set and using default
+    if (input.context_lines === 2) {
+      const suggested = suggestContextLines(input.query);
+      if (suggested !== 2) {
+        input.context_lines = suggested;
+      }
+    }
+    
+    // Check cache first
+    const cacheKey = QueryCache.generateKey('search_content', input);
+    const cached = searchCache.get(cacheKey) as SearchResult | undefined;
+    
+    if (cached) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `[cached] ` + formatSearchResultsText(cached, { 
+              query: input.query, 
+              tool: 'search_content' 
+            }),
+          },
+        ],
+      };
+    }
+    
     const result = await withMetrics('search_content', input, () => searchContent(input));
+    
+    // Cache successful results
+    if (result.files.length > 0) {
+      searchCache.set(cacheKey, result);
+    }
     
     return {
       content: [
         {
           type: 'text',
-          text: formatSearchResultsText(result),
+          text: formatSearchResultsText(result, { 
+            query: input.query, 
+            tool: 'search_content' 
+          }),
         },
       ],
     };
@@ -136,13 +200,40 @@ Examples: "userctrl" → UserController.ts, "jenkfile" → Jenkinsfile, "slackli
   },
   async (args) => {
     const input = FuzzyFindSchema.parse(args);
+    
+    // Check cache first
+    const cacheKey = QueryCache.generateKey('fuzzy_find', input);
+    const cached = searchCache.get(cacheKey) as SearchResult | undefined;
+    
+    if (cached) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `[cached] ` + formatSearchResultsText(cached, { 
+              query: input.query, 
+              tool: 'fuzzy_find' 
+            }),
+          },
+        ],
+      };
+    }
+    
     const result = await withMetrics('fuzzy_find', input, () => fuzzyFind(input));
+    
+    // Cache successful results
+    if (result.files.length > 0) {
+      searchCache.set(cacheKey, result);
+    }
     
     return {
       content: [
         {
           type: 'text',
-          text: formatSearchResultsText(result),
+          text: formatSearchResultsText(result, { 
+            query: input.query, 
+            tool: 'fuzzy_find' 
+          }),
         },
       ],
     };

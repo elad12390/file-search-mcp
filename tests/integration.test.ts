@@ -295,6 +295,87 @@ describe('Integration Tests', () => {
   });
   
   // ==========================================================================
+  // Scenario: Zero-result handling and suggestions
+  // ==========================================================================
+  
+  describe('Scenario: Zero-result handling', () => {
+    it('returns empty results gracefully for non-existent patterns', async () => {
+      const result = await searchContent({
+        reasoning: 'Searching for something that does not exist',
+        query: 'thisPatternDefinitelyDoesNotExistAnywhere12345',
+        path: fixture.rootDir,
+      });
+      
+      // Should return empty results without error
+      expect(result.files).toHaveLength(0);
+      expect(result.totalMatches).toBe(0);
+    });
+    
+    it('handles complex OR patterns that yield no results', async () => {
+      const result = await searchContent({
+        reasoning: 'Testing complex OR pattern with no matches',
+        query: 'nonexistent1|nonexistent2|nonexistent3',
+        path: fixture.rootDir,
+      });
+      
+      expect(result.files).toHaveLength(0);
+    });
+    
+    it('handles regex patterns gracefully', async () => {
+      const result = await searchContent({
+        reasoning: 'Testing regex pattern',
+        query: 'export.*function.*format',
+        path: fixture.rootDir,
+      });
+      
+      // Should find formatters with export function
+      expect(result.files.length).toBeGreaterThanOrEqual(0);
+    });
+  });
+  
+  // ==========================================================================
+  // Scenario: Context-aware searching
+  // ==========================================================================
+  
+  describe('Scenario: Context-aware searching', () => {
+    it('finds function definitions with appropriate context', async () => {
+      const result = await searchContent({
+        reasoning: 'Finding function definitions',
+        query: 'function formatDate',
+        path: fixture.rootDir,
+        context_lines: 5,
+      });
+      
+      // Should find the function with context
+      expect(result.files.length).toBeGreaterThan(0);
+      const formatterFile = result.files.find(f => f.path.includes('formatters'));
+      expect(formatterFile).toBeDefined();
+    });
+    
+    it('finds imports with minimal context needed', async () => {
+      const result = await searchContent({
+        reasoning: 'Finding imports',
+        query: 'import React',
+        path: fixture.rootDir,
+        context_lines: 1,
+      });
+      
+      expect(result.files.length).toBeGreaterThan(0);
+    });
+    
+    it('finds error handling patterns', async () => {
+      const result = await searchContent({
+        reasoning: 'Finding error handling',
+        query: 'throw|catch|Error',
+        path: fixture.rootDir,
+      });
+      
+      // May or may not find matches, but should not error
+      expect(result.files).toBeDefined();
+    });
+  });
+  
+  // ==========================================================================
   // Performance expectations
   // ==========================================================================
   

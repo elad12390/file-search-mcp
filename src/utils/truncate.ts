@@ -1,4 +1,9 @@
 import { MAX_CHARS, FileMatch, SearchResult, TreeResult } from '../types.js';
+import { 
+  generateZeroResultSuggestions, 
+  formatSuggestions,
+  analyzeQueryComplexity,
+} from './suggestions.js';
 
 /**
  * Estimate character count for a result object
@@ -114,10 +119,20 @@ export function truncateString(str: string, maxLength: number): string {
   return str.slice(0, maxLength - 3) + '...';
 }
 
+export interface FormatOptions {
+  query?: string;
+  tool?: 'search_content' | 'search_files' | 'fuzzy_find';
+  showHints?: boolean;
+}
+
 /**
- * Format results for display
+ * Format results for display with optional suggestions and hints
  */
-export function formatSearchResultsText(result: SearchResult): string {
+export function formatSearchResultsText(
+  result: SearchResult, 
+  options: FormatOptions = {}
+): string {
+  const { query, tool, showHints = true } = options;
   const lines: string[] = [];
   
   lines.push(`Found ${result.totalMatches} match(es) in ${result.files.length} file(s)`);
@@ -125,6 +140,27 @@ export function formatSearchResultsText(result: SearchResult): string {
   
   if (result.truncated) {
     lines.push('⚠️  Results truncated to fit response size limit');
+    lines.push('   Tip: Use detail_level="minimal" to see more results, or narrow your search');
+  }
+  
+  // Zero-result suggestions
+  if (result.files.length === 0 && query && tool && showHints) {
+    const suggestions = generateZeroResultSuggestions(query, tool);
+    if (suggestions.length > 0) {
+      lines.push(formatSuggestions(suggestions));
+    }
+  }
+
+  // Query complexity hints for slow searches
+  if (query && showHints && result.searchTime > 300) {
+    const { complexity, hints } = analyzeQueryComplexity(query);
+    if (complexity === 'complex' && hints.length > 0) {
+      lines.push('');
+      lines.push('⏱️  Query Performance:');
+      for (const hint of hints) {
+        lines.push(`   • ${hint}`);
+      }
+    }
   }
   
   lines.push('');
